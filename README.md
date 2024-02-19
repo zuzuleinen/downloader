@@ -19,7 +19,7 @@ To download the file in 8 concurrent requests:
 go run main.go -p 8
 ```
 
-You could also do 1 GET request by spinning only 1 worker, but the reason I have a separate method is to showcase the
+You can also do 1 GET request by spinning only 1 worker, but the reason I have a separate method is to showcase the
 difference between a simple GET request and
 an [HTTP Range request](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests).
 

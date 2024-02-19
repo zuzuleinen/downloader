@@ -180,7 +180,7 @@ func downloadWorker(url string, destinationFileName string, offset, size int64) 
 	}
 	defer rangeResp.Body.Close()
 
-	log.Println("Downloaded", rangeResp.Header.Get("Content-Length"))
+	log.Println("Range Content-Length", rangeResp.Header.Get("Content-Length"))
 
 	data, err := io.ReadAll(rangeResp.Body)
 	if err != nil {

@@ -1,8 +1,8 @@
 # downloader
 
-CLI tool to download a file from a URL. 
+CLI tool to download a file from a URL.
 
-To download:
+## Running the script
 
 ```go
 go run main.go
@@ -15,5 +15,5 @@ go run main.go
 All bytes downloaded & copied in: 18.109658 seconds
 All bytes downloaded & copied in: 21.743763 seconds
 All bytes downloaded & copied in: 22.210321 seconds
- All bytes downloaded & copied in: 15.578542 seconds
+All bytes downloaded & copied in: 15.578542 seconds
 ```

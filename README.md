@@ -1,29 +1,35 @@
 # downloader
 
-CLI tool to download a file from a URL.
+This script showcases downloading a file over HTTP in parallel or by doing a GET request in one go.
+
+The file is located at https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2018-05.parquet and has 125MB. In
+case this file will be removed at one point, feel free to replace the URL.
 
 ## Running the script
 
+To download the file sequentially in 1 GET request:
+
 ```go
-go run main.go
-
+go run main.go -s
 ```
 
-## Tests with sequential downloader
+To download the file in 8 concurrent requests:
 
-```shell
-All bytes downloaded & copied in: 18.109658 seconds
-All bytes downloaded & copied in: 21.743763 seconds
-All bytes downloaded & copied in: 22.210321 seconds
-All bytes downloaded & copied in: 15.578542 seconds
-All bytes downloaded & copied in: 30.264280 seconds
-All bytes downloaded & copied in: 30.686335 seconds
+```go
+go run main.go -p 8
 ```
 
-## Tests with parallel downloader (n=8)
+You could also do 1 GET request by spinning only 1 worker, but the reason I have a separate method is to showcase the
+difference between a simple GET request and
+an [HTTP Range request](https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests).
 
-```shell
-All bytes downloaded & copied in: 26.622065 seconds
-All bytes downloaded & copied in: 28.587247 seconds
-All bytes downloaded & copied in: 30.784564 seconds
-```
+## Contact me for any issues
+
+If you find any issues or suggestions feel free to write me at `andrey.boar@gmail.com` or connect with me
+via [Linkedin](https://www.linkedin.com/in/andrei-boar-7aa32ab7/).
+
+## Credits
+
+This is a slightly modified solution for the [Final Exercise](https://www.353solutions.com/c/znga/dld.html) from the
+course Practical Go - Foundations organized by [Miki
+Tebeka](https://twitter.com/tebeka) on [ardanlabs.com](https://www.ardanlabs.com/)

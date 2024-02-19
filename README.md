@@ -1,6 +1,6 @@
 # downloader
 
-This script showcases downloading a file over HTTP in parallel or by doing a GET request in one go.
+This script showcases downloading a file over HTTP in parallel or by doing a GET request in Golang.
 
 The file is located at https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2018-05.parquet and has 125MB. In
 case this file will be removed at one point, feel free to replace the URL.

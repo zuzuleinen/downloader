@@ -3,10 +3,12 @@ package main
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"errors"
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
 	"time"
 )
@@ -14,6 +16,10 @@ import (
 const Etag = "be04a3eb37076d6f0c479decb4e3738e-8"
 
 func main() {
+	if err := validateArgs(); err != nil {
+		log.Fatalf("invalid args: %s", err)
+	}
+
 	url := "https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2018-05.parquet"
 
 	headResp, err := http.Head(url)
@@ -34,7 +40,13 @@ func main() {
 
 	destinationFileName := "copy.parquet"
 
-	sequentialDownload(destinationFileName, url)
+	if isSequential() {
+		log.Println("Download file by sequential downloader")
+		sequentialDownload(destinationFileName, url)
+	} else {
+		log.Println("Download file by parallel downloader")
+		log.Println("TODO")
+	}
 
 	// Confirm downloaded file matches md5 signature
 	err = checkSignature(destinationFileName, "9338036cc8e8a2a002c2b2c036bdd0d4")
@@ -43,6 +55,23 @@ func main() {
 	}
 
 	log.Println("All good!")
+}
+
+func validateArgs() error {
+	if len(os.Args) < 2 {
+		return errors.New("-s or -p are required. go run main.go -s|-p")
+	}
+	if !slices.Contains([]string{"-s", "-p"}, os.Args[1]) {
+		return errors.New("only -s and -p are allowed. -s for sequential, -p for parallel")
+	}
+	return nil
+}
+
+func isSequential() bool {
+	if len(os.Args) < 2 {
+		return false
+	}
+	return os.Args[1] == "-s"
 }
 
 // sequentialDownload will download from url to destinationFileName in one go,

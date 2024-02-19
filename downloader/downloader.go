@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"sync"
+	"time"
 )
 
 type Downloader struct {
@@ -27,6 +28,10 @@ func NewDownloader(isParallel bool, destinationFileName, url string, numWorkers 
 }
 
 func (d Downloader) Download() error {
+	start := time.Now()
+	defer func() {
+		log.Printf("downloaded in %f seconds", time.Since(start).Seconds())
+	}()
 	if d.isParallel {
 		return d.parallelDownload(d.destinationFileName, d.url, d.numWorkers)
 	}
@@ -136,14 +141,14 @@ func downloadWorker(url string, destinationFileName string, offset, size int64) 
 
 	log.Println("Range Content-Length", rangeResp.Header.Get("Content-Length"))
 
-	data, err := io.ReadAll(rangeResp.Body)
+	f, err := os.OpenFile(destinationFileName, os.O_WRONLY, 0666)
+	_, err = f.Seek(offset, io.SeekStart)
 	if err != nil {
-		log.Fatalf("could not read bytes from the range resp: %s", err)
+		log.Fatalf("could not seek file: %s", err)
 	}
 
-	f, err := os.OpenFile(destinationFileName, os.O_WRONLY, 0666)
+	io.Copy(f, rangeResp.Body)
 	if err != nil {
 		log.Fatalf("could not open file for writing")
 	}
-	f.WriteAt(data, offset)
 }

@@ -7,8 +7,9 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"sync"
 	"time"
+
+	"golang.org/x/sync/errgroup"
 )
 
 type Downloader struct {
@@ -92,23 +93,22 @@ func (d Downloader) parallelDownload(destinationFileName, url string, n int) err
 	chunkSize := int64(size / n)
 	lastChunkSize := chunkSize + int64(size%n)
 
-	var wg sync.WaitGroup
-	wg.Add(n)
+	var g errgroup.Group
 
 	for i := 0; i < n; i++ {
 		offset := int64(i) * chunkSize
-		go func() {
-			defer wg.Done()
-
-			if i == n-1 {
-				downloadWorker(url, destinationFileName, offset, lastChunkSize)
-			} else {
-				downloadWorker(url, destinationFileName, offset, chunkSize)
-			}
-		}()
+		sizeToDownload := chunkSize
+		if i == n-1 {
+			sizeToDownload = lastChunkSize
+		}
+		g.Go(func() error {
+			return downloadAndWrite(url, destinationFileName, offset, sizeToDownload)
+		})
 	}
 
-	wg.Wait()
+	if err = g.Wait(); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -125,17 +125,17 @@ func createEmptyFile(path string, size int64) error {
 	return nil
 }
 
-func downloadWorker(url string, destinationFileName string, offset, size int64) {
+func downloadAndWrite(url string, destinationFileName string, offset, size int64) error {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		log.Fatalf("could not create get request: %s", err)
+		return fmt.Errorf("could not create get request: %w", err)
 	}
 
 	req.Header.Set("Range", fmt.Sprintf("bytes=%d-%d", offset, offset+size-1))
 
 	rangeResp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Fatalf("could not do Range request: %s", err)
+		return fmt.Errorf("could not do Range request: %w", err)
 	}
 	defer rangeResp.Body.Close()
 
@@ -144,11 +144,12 @@ func downloadWorker(url string, destinationFileName string, offset, size int64) 
 	f, err := os.OpenFile(destinationFileName, os.O_WRONLY, 0666)
 	_, err = f.Seek(offset, io.SeekStart)
 	if err != nil {
-		log.Fatalf("could not seek file: %s", err)
+		return fmt.Errorf("could not seek file: %w", err)
 	}
 
-	io.Copy(f, rangeResp.Body)
+	_, err = io.Copy(f, rangeResp.Body)
 	if err != nil {
-		log.Fatalf("could not open file for writing")
+		return fmt.Errorf("could not copy: %w", err)
 	}
+	return nil
 }

@@ -115,7 +115,7 @@ func (d Downloader) parallelDownload(destinationFileName, url string, n int) err
 		return err
 	}
 
-	if err := writeToFile(io.MultiReader(results...), destinationFileName); err != nil {
+	if err := writeToFile(destinationFileName, io.MultiReader(results...)); err != nil {
 		return fmt.Errorf("could not write to file: %w", err)
 	}
 
@@ -159,7 +159,7 @@ func download(url string, offset, size int64) (io.Reader, error) {
 	return &buf, nil
 }
 
-func writeToFile(src io.Reader, destinationFileName string) error {
+func writeToFile(destinationFileName string, src io.Reader) error {
 	f, err := os.OpenFile(destinationFileName, os.O_WRONLY, 0666)
 	if err != nil {
 		return fmt.Errorf("could not open file for writing: %w", err)
